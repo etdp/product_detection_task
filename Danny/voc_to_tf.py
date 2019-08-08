@@ -12,6 +12,14 @@ import os
 import re
 from os.path import basename
 
+"""
+要先創一個資料夾，然後再把 VOC dataset放進去。 
+實例化 ：t = To_Tfrecords(資料夾名稱)
+t.go()
+t.show_image(顯示幾張)
+t.go_pbtxt()
+
+"""
 
 class To_Tfrecords:
     def __init__(self, dataset_folder_name):
