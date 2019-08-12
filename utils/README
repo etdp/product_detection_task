@@ -1,0 +1,4 @@
+step1. change_img_xml_name
+step2. change_xml_file_name
+step3. xml_to_csv
+step4. generate_tfrecord
