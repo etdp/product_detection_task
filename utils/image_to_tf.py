@@ -102,9 +102,9 @@ def _int64_feature(value):
 
 def image_example(image_string, filepath):
 
-    lot_info = filepath.split('/')[-1].split('_')
+#    lot_info = filepath.split('/')[-1].split('_')
     labels = label_dict[filepath.split('/')[-4]]
-    print(labels)
+#    print(labels)
     
     filename, file_extension = os.path.splitext(filepath)
     if file_extension == '.jpg':
@@ -126,7 +126,7 @@ def image_example(image_string, filepath):
     ymaxs = []
     classes_text = []
     classes = []
-    countLabels = 0
+#    countLabels = 0
 
     classes.append(labels)
     tmpArrays = labelXML.getElementsByTagName("filename")
@@ -212,7 +212,7 @@ def _parse_image_function(example_proto):
       # Parse the input tf.Example proto using the dictionary above.
     return tf.compat.v1.parse_single_example(example_proto, image_feature_description)
 
-raw_image_dataset = tf.data.TFRecordDataset(path + 'train_images.tfrecords')
+raw_image_dataset = tf.data.TFRecordDataset(path + 'train_images.record')
 parsed_image_dataset = raw_image_dataset.map(_parse_image_function)
 
 def show_image(count):    
@@ -284,19 +284,19 @@ random.shuffle(train)
 random.shuffle(val)
 random.shuffle(test)
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'train_images.tfrecords') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'train_images.record') as writer:
     for filepath in train:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
         writer.write(tf_example.SerializeToString())
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'val_images.tfrecords') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'val_images.record') as writer:
     for filepath in val:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
         writer.write(tf_example.SerializeToString())
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'test_images.tfrecords') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'test_images.record') as writer:
     for filepath in test:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
