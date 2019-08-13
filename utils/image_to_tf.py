@@ -2,9 +2,36 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Aug 12 11:36:34 2019
-test test test
+
 @author: thomas_yang
 """
+
+# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
+r"""Convert raw PASCAL dataset to TFRecord for object_detection.
+
+Example usage:
+    python object_detection/dataset_tools/create_pascal_tf_record.py \
+        --data_dir=/home/user/VOCdevkit \
+        --year=VOC2012 \
+        --output_path=/home/user/pascal.record
+"""
+#from __future__ import absolute_import
+#from __future__ import division
+#from __future__ import print_function
 
 import hashlib
 import io
@@ -13,6 +40,7 @@ import os
 import re
 import cv2
 import random
+from PIL import Image
 
 from lxml import etree
 import PIL.Image
@@ -26,6 +54,9 @@ from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
 tf.enable_eager_execution()
+
+resize_width = 300
+resize_height = 300
 
 path = '/home/thomas_yang/Downloads/ai_competition_unzip_data/'
 
@@ -74,10 +105,8 @@ def _int64_feature(value):
   return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 def image_example(image_string, filepath):
-
-#    lot_info = filepath.split('/')[-1].split('_')
+    
     labels = label_dict[filepath.split('/')[-4]]
-#    print(labels)
     
     filename, file_extension = os.path.splitext(filepath)
     if file_extension == '.jpg':
@@ -86,8 +115,19 @@ def image_example(image_string, filepath):
     elif file_extension == '.png':    
         xmlFilepath = filepath.split('.png')[0] + '.xml'
         image_format = b'png'
+    
+    encoded_jpg_io = io.BytesIO(image_string)
+    image = Image.open(encoded_jpg_io)    
+    image = image.resize((resize_width, resize_height),Image.ANTIALIAS)
+    imgByteArr = io.BytesIO()    
+    if file_extension == '.jpg':
+        image.save(imgByteArr, format='JPEG')
+    elif file_extension == '.png':
+        image.save(imgByteArr, format='PNG')
+    imgByteArr = imgByteArr.getvalue()
+    encoded_jpg = imgByteArr   
+        
     img = cv2.imread(filepath)
-
     imgShape = img.shape
     height = imgShape[0]
     width = imgShape[1]
@@ -99,7 +139,6 @@ def image_example(image_string, filepath):
     ymaxs = []
     classes_text = []
     classes = []
-#    countLabels = 0
 
     classes.append(labels)
     tmpArrays = labelXML.getElementsByTagName("filename")
@@ -125,8 +164,10 @@ def image_example(image_string, filepath):
     tmpArrays = labelXML.getElementsByTagName("ymax")
     for elem in tmpArrays:
         ymaxs.append(int(elem.firstChild.data) / height)
-
-    encoded_jpg = image_string        
+        
+    width = resize_width   
+    height = resize_height
+    
     tf_example = tf.train.Example(features=tf.train.Features(feature={
     'image/height': dataset_util.int64_feature(height),
     'image/width': dataset_util.int64_feature(width),
@@ -257,19 +298,19 @@ random.shuffle(train)
 random.shuffle(val)
 random.shuffle(test)
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'train_images.record') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'train.record') as writer:
     for filepath in train:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
         writer.write(tf_example.SerializeToString())
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'val_images.record') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'val.record') as writer:
     for filepath in val:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
         writer.write(tf_example.SerializeToString())
 
-with tf.compat.v1.python_io.TFRecordWriter(path + 'test_images.record') as writer:
+with tf.compat.v1.python_io.TFRecordWriter(path + 'test.record') as writer:
     for filepath in test:
         image_string = open(filepath, 'rb').read()
         tf_example = image_example(image_string, filepath)
