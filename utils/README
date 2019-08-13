@@ -1,4 +1,4 @@
-step1. change_img_xml_name
-step2. change_xml_file_name
-step3. xml_to_csv
-step4. generate_tfrecord
+image_to_tf.py
+
+set resize_width, resize_height
+set path = {'PATH to your image folder content 30 itmes'}
