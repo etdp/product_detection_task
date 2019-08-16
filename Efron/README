@@ -3,3 +3,6 @@ First you should modify you image path and save path at line 54 and 55
 Please modify line 73 whitch is the rectangle for graycut.
 This rectangle in out project is the bounding box coordinate (x,y,width,height).
 
+
+When you use this code, press "1" (location is same as ㄅ) is foreground and press "2" (location is same as ㄉ) is backgournd
+If you finish this picture press "s" to save image.
