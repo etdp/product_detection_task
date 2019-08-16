@@ -56,6 +56,9 @@ flags.DEFINE_integer('num_shards', 1,
 
 flags.DEFINE_boolean('ignore_difficult_instances', False, 'Whether to ignore '
                      'difficult instances')
+
+flags.DEFINE_boolean('shuffle', False, 'Shuffle the data list')
+
 FLAGS = flags.FLAGS
 
 SETS = ['train', 'val', 'trainval', 'test']
@@ -115,11 +118,14 @@ def dict_to_tf_example(data,
   ymax = []
   classes = []
   classes_text = []
+  difficult_obj = []
   if 'object' in data:
     for obj in data['object']:
       difficult = bool(int(obj['difficult']))
       if ignore_difficult_instances and difficult:
         continue
+
+      difficult_obj.append(int(difficult))
 
       xmin.append(float(obj['bndbox']['xmin']) / width)
       ymin.append(float(obj['bndbox']['ymin']) / height)
@@ -141,6 +147,7 @@ def dict_to_tf_example(data,
       'image/object/bbox/ymax': dataset_util.float_list_feature(ymax),
       'image/object/class/text': dataset_util.bytes_list_feature(classes_text),
       'image/object/class/label': dataset_util.int64_list_feature(classes),
+      'image/object/difficult': dataset_util.int64_list_feature(difficult_obj),
   }))
 
   return example
@@ -156,7 +163,8 @@ def main(_):
   examples_path = os.path.join(FLAGS.data_dir, FLAGS.set + '.txt')
   examples_list = dataset_util.read_examples_list(examples_path)
 
-  random.shuffle(examples_list)
+  if FLAGS.shuffle:
+    random.shuffle(examples_list)
 
   with contextlib2.ExitStack() as tf_record_close_stack:
     output_tfrecords = tf_record_creation_util.open_sharded_output_tfrecords(tf_record_close_stack,
